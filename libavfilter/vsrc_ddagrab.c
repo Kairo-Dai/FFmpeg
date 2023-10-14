@@ -101,6 +101,7 @@ typedef struct DdagrabContext {
     int        out_fmt;
     int        allow_fallback;
     int        force_fmt;
+    int        pool_size;
 } DdagrabContext;
 
 #define OFFSET(x) offsetof(DdagrabContext, x)
@@ -124,6 +125,8 @@ static const AVOption ddagrab_options[] = {
                                                    OFFSET(allow_fallback), AV_OPT_TYPE_BOOL,   { .i64 = 0    },       0,       1, FLAGS },
     { "force_fmt",  "exclude BGRA from format list (experimental, discouraged by Microsoft)",
                                                    OFFSET(force_fmt),  AV_OPT_TYPE_BOOL,       { .i64 = 0    },       0,       1, FLAGS },
+    { "pool_size",  "hwframes pool size",
+                                                   OFFSET(pool_size),  AV_OPT_TYPE_INT,        { .i64 = 0    },       0,       INT_MAX, FLAGS },
     { NULL }
 };
 
@@ -792,6 +795,9 @@ static av_cold int init_hwframes_ctx(AVFilterContext *avctx)
 
     if (dda->draw_mouse)
         dda->frames_hwctx->BindFlags |= D3D11_BIND_RENDER_TARGET;
+
+    if (dda->pool_size)
+        dda->frames_ctx->initial_pool_size = dda->pool_size;
 
     ret = av_hwframe_ctx_init(dda->frames_ref);
     if (ret < 0) {
